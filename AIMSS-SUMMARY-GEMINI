@@ -1,0 +1,121 @@
+[VISION PAPER]Toward a Push-based Stream Programming Model with AIMSS: An Active In-Memory Storage System Approach
+
+Summary by Google Gemini 1.5 Pro Experimental 0827 (slightly edited, references validated)
+
+Abstract
+
+This paper presents the vision for an Active In-Memory Storage System (AIMSS), a novel architecture designed to optimize data management for data-intensive applications like large language model (LLM) training and big data streaming. AIMSS shifts data movement responsibilities, such as source handling, sink management, and data shuffling, from applications to the storage layer. This delegation, facilitated by a push-based stream programming model, empowers AIMSS to leverage application-specific data access patterns for optimizing data movement and execution across the HPC infrastructure. AIMSS operates on a log-structured in-memory storage framework, ensuring efficient real-time data movement and facilitating fault tolerance. We highlight five key data-based optimizations enabled by AIMSS: scalable data movement partitioning, faster stream storage recovery, straggler mitigation, power jitter reduction, and reduced I/O interference in multi-application scenarios. AIMSS promises significant performance improvements and resource utilization by actively managing data movement and combining in-memory processing with a novel push-based stream programming model suitable for exascale computing.
+
+I. INTRODUCTION: MOTIVATION, VISION AND OBJECTIVES
+
+The rapid growth of data-intensive applications, particularly in the domains of large language models (LLMs) and big data analytics, demands scalable, energy-efficient, and fault-tolerant storage systems. Large-scale HPC infrastructure, with its abundant compute resources (CPUs, GPUs) and advanced interconnects, necessitates a rethinking of data management to maximize resource utilization and performance. Current approaches often leave data movement responsibilities to individual applications, leading to inefficiencies and complexities in managing data across the distributed infrastructure.
+
+Motivation: Scaling data-intensive applications on HPC exascale faces several challenges:
+
+Data Movement Bottleneck: GPUs often spend a significant portion of their time idle, waiting for data [3], highlighting the need for efficient data management.
+
+Fault Tolerance: Failures at exascale are frequent, leading to substantial wasted compute capacity due to recovery overheads [4].
+
+Power Jitter: Synchronization tasks like checkpointing and collective communication in large-scale LLM training can cause extreme power fluctuations, straining data center power grids [5].
+
+I/O Interference: Multiple applications sharing HPC resources can experience performance degradation due to I/O contention.
+
+Vision: Our vision for AIMSS is a unified storage and compute architecture for data-intensive applications on HPC infrastructure. AIMSS actively manages data movement across the memory hierarchy, leveraging application insights to optimize data flow and resource utilization.
+
+Objectives:
+Our research aims to answer the following central question: How can we efficiently scale in and scale out large-scale data-intensive pipelines on HPC infrastructure in a fault-tolerant manner, optimizing for energy, performance, and developer transparency?
+
+II. THE AIMSS APPROACH
+
+AIMSS is built on the key insight that integrating in-memory storage with processing and delegating data movement control from applications to the storage layer can unlock significant optimization opportunities.
+
+Architecture:
+AIMSS will be deployed across the CPU-GPU HPC infrastructure, leveraging their combined memory resources (Figure 1). It comprises:
+
+Coordinators: Manage metadata and system components.
+
+Storage Brokers (CPU-based): Interact with disk-based file systems and caching systems to fill application caches.
+
+Application Caches (CPU-GPU-based): Manage host and GPU memory for applications, utilizing push-based stream buffers (Figure 3).
+
+Push-based Streaming Execution Model:
+AIMSS employs a push-based streaming execution model (Figure 2) where data movement is initiated by the storage layer based on application needs and data access patterns. This contrasts with traditional pull-based models where applications request data from the storage layer.
+
+Key Benefits:
+
+Unified CPU-GPU Deployment and Optimized Performance: AIMSS's unified approach and push-based model facilitate efficient data movement and processing across the HPC infrastructure.
+
+Transparent Scalability and Resiliency: AIMSS automatically scales data-intensive pipelines and ensures resilience, freeing users from manual management tasks.
+
+Data Movement Optimization: AIMSS manages various data movement operations, including source handling, sink management, and shuffling, leveraging a global I/O overview for optimized resource utilization.
+
+III. PUSH-BASED STREAMING PROGRAMMING MODEL
+
+AIMSS leverages a push-based streaming programming model to facilitate data movement optimization. Applications interact with AIMSS through stream APIs, delegating data movement operations.
+
+Core Concepts:
+
+Streams: Represent continuous data flows between applications and AIMSS.
+
+Source Operators: Register input stream requirements with AIMSS, which proactively fills input buffers.
+
+Sink Operators: Operate on pre-registered stream buffers and notify AIMSS when data is ready to be written.
+
+Shuffle Operators: Delegate data redistribution based on partitioning methods to AIMSS.
+
+APIs:
+AIMSS provides a set of APIs for managing streams, including:
+
+CreateStream: Initializes a new stream.
+
+ReadFrom: Provides shared stream buffers for reading.
+
+WriteTo: Writes data to a specified stream.
+
+ShuffleStream/ShuffleStreams: Signal and manage shuffle operations.
+
+DestroyStream: Cleans up a stream.
+
+Comparison with Passive Storage Model:
+The push-based approach contrasts with the traditional passive storage model where applications directly manage file I/O operations (e.g., CreateFile, ReadFrom, WriteTo).
+
+IV. DATA-BASED ARCHITECTURAL OPTIMIZATIONS ENABLED BY AIMSS
+
+The push-based streaming model and AIMSS's active data management capabilities enable several key optimizations:
+
+1. Scalable Data Movement Partitioning:
+AIMSS dynamically partitions data streams and distributes them across compute resources based on application needs and resource availability. This eliminates the need for manual data partitioning and facilitates scaling applications across the HPC infrastructure.
+
+2. Faster Stream Storage Recovery:
+AIMSS's log-structured design and application-specific knowledge (consumer/producer offsets) enable fast recovery from failures (Figure 4). Instead of recovering the entire log, AIMSS prioritizes recovering logs relevant to the application's current state, enabling faster application restarts.
+
+3. Straggler Mitigation:
+AIMSS tracks the progress of application compute tasks through its Application Cache nodes. This allows for the identification of stragglers and the dynamic redistribution of work to maintain balanced performance across the system.
+
+4. Power Jitter Reduction:
+By actively managing data movement and having insights into remaining computations, AIMSS can efficiently utilize idle GPU resources during synchronization tasks like checkpointing. This reduces the likelihood of synchronized power fluctuations across large-scale GPU deployments, mitigating power jitter.
+
+5. Reduced I/O Interference:
+In multi-application scenarios, AIMSS minimizes I/O interference by coordinating data access and optimizing data placement across storage resources. This ensures that applications do not contend for I/O bandwidth, improving overall system performance.
+
+V. RELATED WORK
+
+Several research areas are relevant to AIMSS:
+
+Data Ingestion Systems (e.g., KerA [14]): Focus on acquiring and buffering data streams.
+
+Data Storage Systems (e.g., [15]): Ensure data durability, availability, and fault tolerance.
+
+Big Data Processing and ML Analytics (e.g., [16], [17]): Enable efficient data consumption for analytics.
+
+Stream Storage Systems (e.g., Apache Kafka [20,21]): Provide scalable stream storage but often require manual data re-partitioning and lack support for partial recovery.
+
+Fault-Tolerant Storage Systems (e.g., RAMCloud [22]): Focus on full node recovery without application-specific knowledge.
+
+Data Flow Architectures (e.g., [25]): Aim to reduce data movement but do not focus on active data management and integration with existing processing engines.
+
+AIMSS differentiates itself by integrating these functionalities into a unified architecture with a push-based streaming model, enabling a holistic approach to data management and optimization.
+
+VI. CONCLUSION
+
+The proposed AIMSS, with its push-based streaming execution model, presents a promising approach for optimizing data management for data-intensive applications on HPC exascale. By actively managing data movement and leveraging application insights, AIMSS enables key optimizations that improve performance, scalability, fault tolerance, and resource utilization. Future work will focus on the detailed design, implementation, and evaluation of AIMSS, particularly in the context of LLM training and integration with existing HPC ML/AI frameworks. We also plan to utilize formal verification techniques like TLA+ [27] to ensure the consistency and correctness of the AIMSS design.
