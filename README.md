@@ -3,6 +3,8 @@
 
 [VISION PAPER] Toward a Push-based Stream Programming Model with AIMSS: An Active In-Memory Storage System for Exascale ML/AI.
 
+Link: https://github.com/granular-storage/aimss.github.io/blob/main/aimss-push-model-system-vision-paper-final.pdf
+
 Exascale machine learning and artificial intelligence (ML/AI) applications demand scalable, efficient, and fault-tolerant data management. 
 
 This paper presents the vision for an Active In-Memory Storage System (AIMSS), a novel architecture that integrates storage and processing by delegating 
